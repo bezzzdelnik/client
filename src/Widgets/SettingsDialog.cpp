@@ -656,16 +656,15 @@ void SettingsDialog::loadLtc()
 
 void SettingsDialog::populateLtcChannels(const QString& deviceId)
 {
-    Q_UNUSED(deviceId);
-
     this->comboBoxLtcAudioChannel->blockSignals(true);
     this->comboBoxLtcAudioChannel->clear();
 
-    for (int i = 1; i <= LtcDevice::MaxAudioTracks; ++i)
+    const int channelCount = LtcDevice::channelCountForDevice(deviceId);
+    for (int i = 1; i <= channelCount; ++i)
         this->comboBoxLtcAudioChannel->addItem(QString::number(i), i);
 
     int selectedChannel = DatabaseManager::getInstance().getConfigurationByName("LtcAudioChannel").getValue().toInt();
-    if (selectedChannel < 1 || selectedChannel > LtcDevice::MaxAudioTracks)
+    if (selectedChannel < 1 || selectedChannel > channelCount)
         selectedChannel = 1;
 
     this->comboBoxLtcAudioChannel->setCurrentIndex(selectedChannel - 1);

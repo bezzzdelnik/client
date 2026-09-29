@@ -2,10 +2,28 @@
 
 #include <ltc.h>
 
+#include <QAudio>
 #include <QAudioDevice>
 #include <QMediaDevices>
 #include <QtEndian>
 #include <QDebug>
+
+namespace
+{
+    bool tryOpenFormat(const QAudioDevice& device, int channelCount, int sampleRate, QAudioFormat::SampleFormat sampleFormat)
+    {
+        QAudioFormat format;
+        format.setSampleRate(sampleRate);
+        format.setChannelCount(channelCount);
+        format.setSampleFormat(sampleFormat);
+
+        QAudioSource source(device, format);
+        QIODevice* io = source.start();
+        const bool ok = io && source.state() != QAudio::StoppedState;
+        source.stop();
+        return ok;
+    }
+}
 
 LtcDevice::LtcDevice(QObject* parent)
     : QObject(parent)
@@ -44,10 +62,41 @@ QAudioDevice LtcDevice::resolveDevice(const QString& deviceId) const
 
 int LtcDevice::channelCountForDevice(const QString& deviceId)
 {
-    Q_UNUSED(deviceId);
-    // Always expose 1..8 tracks so multichannel devices (e.g. Blackmagic)
-    // can select LTC on track 3+ even when Qt reports only stereo.
-    return MaxAudioTracks;
+    QAudioDevice device;
+    const QList<QAudioDevice> inputs = QMediaDevices::audioInputs();
+    for (const QAudioDevice& input : inputs)
+    {
+        if (QString::fromUtf8(input.id()) == deviceId || input.description() == deviceId)
+        {
+            device = input;
+            break;
+        }
+    }
+
+    if (device.isNull())
+        device = QMediaDevices::defaultAudioInput();
+
+    if (device.isNull())
+        return 2;
+
+    const int preferredRate = device.preferredFormat().sampleRate() > 0
+        ? device.preferredFormat().sampleRate()
+        : 48000;
+
+    // Probe highest channel count the device can actually open (up to 8).
+    const int candidates[] = { 8, 6, 4, 2, 1 };
+    for (int channelCount : candidates)
+    {
+        if (tryOpenFormat(device, channelCount, preferredRate, QAudioFormat::Int16)
+            || tryOpenFormat(device, channelCount, preferredRate, QAudioFormat::Float))
+        {
+            return channelCount;
+        }
+    }
+
+    const int reported = qMax(1, device.maximumChannelCount());
+    const int preferred = qMax(1, device.preferredFormat().channelCount());
+    return qMin(MaxAudioTracks, qMax(reported, preferred));
 }
 
 bool LtcDevice::isActive() const
@@ -66,7 +115,7 @@ void LtcDevice::start(const QString& deviceId, int channel, int frameRate)
 
     this->deviceId = deviceId;
     this->frameRate = (frameRate == 25 || frameRate == 30 || frameRate == 50) ? frameRate : 25;
-    this->channelIndex = qBound(0, channel - 1, MaxAudioTracks - 1);
+    this->channelIndex = qMax(0, channel - 1);
 
     QAudioDevice device = resolveDevice(deviceId);
     if (device.isNull())
@@ -76,49 +125,90 @@ void LtcDevice::start(const QString& deviceId, int channel, int frameRate)
         return;
     }
 
-    QAudioFormat format;
-    format.setSampleRate(48000);
-    format.setChannelCount(MaxAudioTracks);
-    format.setSampleFormat(QAudioFormat::Int16);
-
-    // Always try to open 8 tracks first (Blackmagic / multi-channel devices).
-    // Fall back only if the device refuses to start.
-    this->audioSource = new QAudioSource(device, format, this);
-    this->audioIODevice = this->audioSource->start();
-
-    if (!this->audioIODevice)
+    const int availableChannels = channelCountForDevice(deviceId);
+    if (this->channelIndex >= availableChannels)
     {
-        delete this->audioSource;
-        this->audioSource = nullptr;
-
-        format = device.preferredFormat();
-        if (format.sampleRate() <= 0)
-            format.setSampleRate(48000);
-        if (format.channelCount() < MaxAudioTracks)
-            format.setChannelCount(MaxAudioTracks);
-        if (format.sampleFormat() != QAudioFormat::Int16 && format.sampleFormat() != QAudioFormat::Float)
-            format.setSampleFormat(QAudioFormat::Int16);
-
-        this->audioSource = new QAudioSource(device, format, this);
-        this->audioIODevice = this->audioSource->start();
+        qWarning() << "LtcDevice: track" << (this->channelIndex + 1)
+                    << "is not available on" << device.description()
+                    << "(device supports" << availableChannels << "channel(s))";
+        setActive(false);
+        emitTimecode("00:00:00:00");
+        return;
     }
 
-    if (!this->audioIODevice)
+    const int neededChannels = this->channelIndex + 1;
+    const int preferredRate = device.preferredFormat().sampleRate() > 0
+        ? device.preferredFormat().sampleRate()
+        : 48000;
+
+    QList<int> channelCandidates;
+    auto addCandidate = [&channelCandidates, neededChannels, availableChannels](int count) {
+        count = qBound(neededChannels, count, availableChannels);
+        if (count >= neededChannels && !channelCandidates.contains(count))
+            channelCandidates.append(count);
+    };
+
+    addCandidate(availableChannels);
+    addCandidate(neededChannels);
+    addCandidate(qMax(1, device.preferredFormat().channelCount()));
+    addCandidate(qMax(1, device.maximumChannelCount()));
+
+    const QList<QAudioFormat::SampleFormat> sampleFormats = {
+        QAudioFormat::Int16,
+        QAudioFormat::Float
+    };
+
+    for (int channelCount : channelCandidates)
+    {
+        for (QAudioFormat::SampleFormat sampleFormat : sampleFormats)
+        {
+            QAudioFormat format;
+            format.setSampleRate(preferredRate);
+            format.setChannelCount(channelCount);
+            format.setSampleFormat(sampleFormat);
+
+            auto* source = new QAudioSource(device, format, this);
+            QIODevice* io = source->start();
+            if (io && source->state() != QAudio::StoppedState)
+            {
+                this->audioSource = source;
+                this->audioIODevice = io;
+                break;
+            }
+
+            source->stop();
+            delete source;
+        }
+
+        if (this->audioIODevice)
+            break;
+    }
+
+    if (!this->audioIODevice || !this->audioSource)
     {
         qWarning() << "LtcDevice: failed to start audio capture on" << device.description()
-                    << "requested track" << (this->channelIndex + 1);
+                    << "requested track" << neededChannels;
         stop();
         return;
     }
 
-    format = this->audioSource->format();
+    const QAudioFormat format = this->audioSource->format();
     if (this->channelIndex >= format.channelCount())
     {
-        qWarning() << "LtcDevice: track" << (this->channelIndex + 1)
-                    << "not available, device opened with" << format.channelCount() << "channel(s)";
+        qWarning() << "LtcDevice: opened only" << format.channelCount()
+                    << "channel(s), track" << neededChannels << "unavailable";
+        stop();
+        emitTimecode("00:00:00:00");
+        return;
     }
 
-    this->sampleRate = format.sampleRate() > 0 ? format.sampleRate() : 48000;
+    qDebug() << "LtcDevice: capturing" << device.description()
+             << "track" << neededChannels
+             << "format channels" << format.channelCount()
+             << "rate" << format.sampleRate()
+             << "sampleFormat" << format.sampleFormat();
+
+    this->sampleRate = format.sampleRate() > 0 ? format.sampleRate() : preferredRate;
     const int apv = qMax(1, this->sampleRate / this->frameRate);
 
     this->decoder = ltc_decoder_create(apv, 32);
@@ -174,7 +264,10 @@ void LtcDevice::processAudio()
 
     const QAudioFormat format = this->audioSource->format();
     const int channelCount = qMax(1, format.channelCount());
-    const int selected = qBound(0, this->channelIndex, channelCount - 1);
+    if (this->channelIndex < 0 || this->channelIndex >= channelCount)
+        return;
+
+    const int selected = this->channelIndex;
 
     if (format.sampleFormat() == QAudioFormat::Int16)
     {
