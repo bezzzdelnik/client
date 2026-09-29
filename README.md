@@ -13,8 +13,6 @@ This fork adds **LTC (Linear Timecode) decoding and rundown triggering**:
 - Capture LTC from any system audio input (Qt Multimedia) using [libltc](https://github.com/x42/libltc)
 - Per-item **Allow Timecode Triggering** with target `HH:MM:SS:FF` or `HH:MM:SS`
 - Settings → **LTC** tab: audio device, audio track/channel, frame rate (25 / 30 / 50 fps)
-- Live Timecode display between Audio Levels and Inspector (orange = inactive, green = locked)
-- Vendored Windows **libvlc** under `lib/libvlc` so the build does not need to download VLC at configure time
 
 See [CHANGELOG](CHANGELOG) for the full list.
 

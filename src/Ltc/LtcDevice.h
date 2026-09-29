@@ -30,6 +30,8 @@ class LTC_EXPORT LtcDevice : public QObject
         bool isActive() const;
         QString currentTimecode() const;
 
+        static const int MaxAudioTracks = 8;
+
         static QList<QAudioDevice> availableInputs();
         static int channelCountForDevice(const QString& deviceId);
 

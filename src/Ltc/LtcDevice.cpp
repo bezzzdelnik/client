@@ -44,29 +44,10 @@ QAudioDevice LtcDevice::resolveDevice(const QString& deviceId) const
 
 int LtcDevice::channelCountForDevice(const QString& deviceId)
 {
-    QAudioDevice device;
-    const QList<QAudioDevice> inputs = QMediaDevices::audioInputs();
-    for (const QAudioDevice& input : inputs)
-    {
-        if (QString::fromUtf8(input.id()) == deviceId || input.description() == deviceId)
-        {
-            device = input;
-            break;
-        }
-    }
-
-    if (device.isNull())
-        device = QMediaDevices::defaultAudioInput();
-
-    if (device.isNull())
-        return 2;
-
-    const int maxChannels = device.maximumChannelCount();
-    if (maxChannels > 0)
-        return qMax(1, maxChannels);
-
-    const int preferred = device.preferredFormat().channelCount();
-    return qMax(1, preferred > 0 ? preferred : 2);
+    Q_UNUSED(deviceId);
+    // Always expose 1..8 tracks so multichannel devices (e.g. Blackmagic)
+    // can select LTC on track 3+ even when Qt reports only stereo.
+    return MaxAudioTracks;
 }
 
 bool LtcDevice::isActive() const
@@ -85,7 +66,7 @@ void LtcDevice::start(const QString& deviceId, int channel, int frameRate)
 
     this->deviceId = deviceId;
     this->frameRate = (frameRate == 25 || frameRate == 30 || frameRate == 50) ? frameRate : 25;
-    this->channelIndex = qMax(0, channel - 1);
+    this->channelIndex = qBound(0, channel - 1, MaxAudioTracks - 1);
 
     QAudioDevice device = resolveDevice(deviceId);
     if (device.isNull())
@@ -95,26 +76,47 @@ void LtcDevice::start(const QString& deviceId, int channel, int frameRate)
         return;
     }
 
-    const int deviceChannels = channelCountForDevice(deviceId);
-    if (this->channelIndex >= deviceChannels)
-        this->channelIndex = 0;
-
     QAudioFormat format;
     format.setSampleRate(48000);
-    format.setChannelCount(deviceChannels);
+    format.setChannelCount(MaxAudioTracks);
     format.setSampleFormat(QAudioFormat::Int16);
 
-    if (!device.isFormatSupported(format))
+    // Always try to open 8 tracks first (Blackmagic / multi-channel devices).
+    // Fall back only if the device refuses to start.
+    this->audioSource = new QAudioSource(device, format, this);
+    this->audioIODevice = this->audioSource->start();
+
+    if (!this->audioIODevice)
     {
+        delete this->audioSource;
+        this->audioSource = nullptr;
+
         format = device.preferredFormat();
-        if (format.channelCount() < 1)
-            format.setChannelCount(deviceChannels);
+        if (format.sampleRate() <= 0)
+            format.setSampleRate(48000);
+        if (format.channelCount() < MaxAudioTracks)
+            format.setChannelCount(MaxAudioTracks);
         if (format.sampleFormat() != QAudioFormat::Int16 && format.sampleFormat() != QAudioFormat::Float)
             format.setSampleFormat(QAudioFormat::Int16);
+
+        this->audioSource = new QAudioSource(device, format, this);
+        this->audioIODevice = this->audioSource->start();
     }
 
+    if (!this->audioIODevice)
+    {
+        qWarning() << "LtcDevice: failed to start audio capture on" << device.description()
+                    << "requested track" << (this->channelIndex + 1);
+        stop();
+        return;
+    }
+
+    format = this->audioSource->format();
     if (this->channelIndex >= format.channelCount())
-        this->channelIndex = 0;
+    {
+        qWarning() << "LtcDevice: track" << (this->channelIndex + 1)
+                    << "not available, device opened with" << format.channelCount() << "channel(s)";
+    }
 
     this->sampleRate = format.sampleRate() > 0 ? format.sampleRate() : 48000;
     const int apv = qMax(1, this->sampleRate / this->frameRate);
@@ -123,19 +125,11 @@ void LtcDevice::start(const QString& deviceId, int channel, int frameRate)
     if (!this->decoder)
     {
         qWarning() << "LtcDevice: failed to create LTC decoder";
-        return;
-    }
-
-    this->samplePosition = 0;
-    this->audioSource = new QAudioSource(device, format, this);
-    this->audioIODevice = this->audioSource->start();
-    if (!this->audioIODevice)
-    {
-        qWarning() << "LtcDevice: failed to start audio capture on" << device.description();
         stop();
         return;
     }
 
+    this->samplePosition = 0;
     this->pollTimer.start();
     this->lastTimecode = "00:00:00:00";
     setActive(false);
