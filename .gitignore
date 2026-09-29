@@ -11,3 +11,6 @@
 /src/.vs
 /src/cmake-build-*
 /src/.idea
+# Large redundant VLC archive (extracted binaries live in lib/libvlc)
+/lib/libvlc-*.zip
+

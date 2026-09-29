@@ -218,7 +218,9 @@ namespace Output
     static const int DEFAULT_DURATION = 0;
     static const bool DEFAULT_ALLOW_GPI = false;
     static const bool DEFAULT_ALLOW_REMOTE_TRIGGERING = false;
+    static const bool DEFAULT_ALLOW_TIMECODE_TRIGGERING = false;
     static const QString DEFAULT_REMOTE_TRIGGER_ID = "";
+    static const QString DEFAULT_TRIGGER_TIMECODE = "";
     static const QString DEFAULT_DELAY_IN_FRAMES = "Frames";
     static const QString DEFAULT_DELAY_IN_MILLISECONDS = "Milliseconds";
     static const QString DEFAULT_PLAYOUT_COMMAND = "Play";
@@ -443,7 +445,8 @@ namespace Action
     enum class ActionType
     {
         KeyPress,
-        GpiPulse
+        GpiPulse,
+        TimecodeMatch
     };
 }
 

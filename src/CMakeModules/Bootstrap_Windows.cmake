@@ -39,23 +39,37 @@ else ()
 	link_directories("${BOOST_INSTALL_DIR}/lib")
 endif ()
 
-#libvlc
-ExternalProject_Add(libvlc2
-	URL ${CASPARCG_DOWNLOAD_MIRROR}/libvlc/libvlc-3.0.20-win32-x64.zip
-	URL_HASH SHA256=0d75f8938f07cc207c08ac27e10a886d4be71b9a1a54dbe77dc7f7b7470dadb7
-	DOWNLOAD_DIR ${CASPARCG_DOWNLOAD_CACHE}
-	CONFIGURE_COMMAND ""
-	BUILD_COMMAND ""
-	INSTALL_COMMAND ""
-)
-ExternalProject_Get_Property(libvlc2 SOURCE_DIR)
-set(LIBVLC_INCLUDE_DIR "${SOURCE_DIR}/include")
-set(LIBVLC_LIBRARY "libvlc")
-set(LIBVLC_CORE_LIBRARY "libvlccore")
-link_directories("${SOURCE_DIR}")
-casparcg_add_runtime_dependency("${SOURCE_DIR}/libvlc.dll")
-casparcg_add_runtime_dependency("${SOURCE_DIR}/libvlccore.dll")
-casparcg_add_runtime_dependency_dir("${SOURCE_DIR}/plugins")
+#libvlc — prefer vendored binaries under lib/libvlc (no network download)
+set(LIBVLC_VENDOR_DIR "${CMAKE_SOURCE_DIR}/../lib/libvlc")
+if (EXISTS "${LIBVLC_VENDOR_DIR}/libvlc.dll")
+	message(STATUS "Using vendored libvlc from ${LIBVLC_VENDOR_DIR}")
+	add_custom_target(libvlc2)
+	set(LIBVLC_INCLUDE_DIR "${LIBVLC_VENDOR_DIR}/include")
+	set(LIBVLC_LIBRARY "libvlc")
+	set(LIBVLC_CORE_LIBRARY "libvlccore")
+	link_directories("${LIBVLC_VENDOR_DIR}")
+	casparcg_add_runtime_dependency("${LIBVLC_VENDOR_DIR}/libvlc.dll")
+	casparcg_add_runtime_dependency("${LIBVLC_VENDOR_DIR}/libvlccore.dll")
+	casparcg_add_runtime_dependency_dir("${LIBVLC_VENDOR_DIR}/plugins")
+else ()
+	message(STATUS "Vendored libvlc not found, downloading prebuilt package")
+	ExternalProject_Add(libvlc2
+		URL ${CASPARCG_DOWNLOAD_MIRROR}/libvlc/libvlc-3.0.20-win32-x64.zip
+		URL_HASH SHA256=0d75f8938f07cc207c08ac27e10a886d4be71b9a1a54dbe77dc7f7b7470dadb7
+		DOWNLOAD_DIR ${CASPARCG_DOWNLOAD_CACHE}
+		CONFIGURE_COMMAND ""
+		BUILD_COMMAND ""
+		INSTALL_COMMAND ""
+	)
+	ExternalProject_Get_Property(libvlc2 SOURCE_DIR)
+	set(LIBVLC_INCLUDE_DIR "${SOURCE_DIR}/include")
+	set(LIBVLC_LIBRARY "libvlc")
+	set(LIBVLC_CORE_LIBRARY "libvlccore")
+	link_directories("${SOURCE_DIR}")
+	casparcg_add_runtime_dependency("${SOURCE_DIR}/libvlc.dll")
+	casparcg_add_runtime_dependency("${SOURCE_DIR}/libvlccore.dll")
+	casparcg_add_runtime_dependency_dir("${SOURCE_DIR}/plugins")
+endif ()
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT shell)
 

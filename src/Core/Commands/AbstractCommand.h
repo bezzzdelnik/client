@@ -25,7 +25,9 @@ class CORE_EXPORT AbstractCommand : public QObject, public AbstractProperties
         virtual int getVideolayer() const;
         virtual bool getAllowGpi() const;
         virtual bool getAllowRemoteTriggering() const;
+        virtual bool getAllowTimecodeTriggering() const;
         virtual QString getRemoteTriggerId() const;
+        virtual QString getTriggerTimecode() const;
         virtual QString getStoryId() const;
 
         virtual void setChannel(int channel);
@@ -34,7 +36,9 @@ class CORE_EXPORT AbstractCommand : public QObject, public AbstractProperties
         virtual void setDuration(int duration);
         virtual void setAllowGpi(bool allowGpi);
         virtual void setAllowRemoteTriggering(bool allowRemoteTriggering);
+        virtual void setAllowTimecodeTriggering(bool allowTimecodeTriggering);
         virtual void setRemoteTriggerId(const QString& remoteTriggerId);
+        virtual void setTriggerTimecode(const QString& triggerTimecode);
         virtual void setStoryId(const QString& storyId);
 
         virtual void readProperties(boost::property_tree::wptree& pt);
@@ -45,6 +49,7 @@ class CORE_EXPORT AbstractCommand : public QObject, public AbstractProperties
 
         QString storyId = "";
         QString remoteTriggerId = Output::DEFAULT_REMOTE_TRIGGER_ID;
+        QString triggerTimecode = Output::DEFAULT_TRIGGER_TIMECODE;
 
         int channel = Output::DEFAULT_CHANNEL;
         int videolayer = Output::DEFAULT_VIDEOLAYER;
@@ -52,6 +57,7 @@ class CORE_EXPORT AbstractCommand : public QObject, public AbstractProperties
         int duration = Output::DEFAULT_DURATION ;
         bool allowGpi = Output::DEFAULT_ALLOW_GPI;
         bool allowRemoteTriggering = Output::DEFAULT_ALLOW_REMOTE_TRIGGERING;
+        bool allowTimecodeTriggering = Output::DEFAULT_ALLOW_TIMECODE_TRIGGERING;
 
 
     private:
@@ -61,6 +67,8 @@ class CORE_EXPORT AbstractCommand : public QObject, public AbstractProperties
         Q_SIGNAL void durationChanged(int);
         Q_SIGNAL void allowGpiChanged(bool);
         Q_SIGNAL void allowRemoteTriggeringChanged(bool);
+        Q_SIGNAL void allowTimecodeTriggeringChanged(bool);
         Q_SIGNAL void remoteTriggerIdChanged(const QString&);
+        Q_SIGNAL void triggerTimecodeChanged(const QString&);
         Q_SIGNAL void storyIdChanged(const QString&);
 };

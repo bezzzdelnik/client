@@ -128,6 +128,8 @@ AbstractRundownWidget* RundownCropWidget::clone()
     command->setAllowGpi(this->command.getAllowGpi());
     command->setAllowRemoteTriggering(this->command.getAllowRemoteTriggering());
     command->setRemoteTriggerId(this->command.getRemoteTriggerId());
+    command->setAllowTimecodeTriggering(this->command.getAllowTimecodeTriggering());
+    command->setTriggerTimecode(this->command.getTriggerTimecode());
     command->setLeft(this->command.getLeft());
     command->setTop(this->command.getTop());
     command->setRight(this->command.getRight());

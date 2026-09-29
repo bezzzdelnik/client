@@ -128,6 +128,8 @@ AbstractRundownWidget* RundownAnchorWidget::clone()
     command->setAllowGpi(this->command.getAllowGpi());
     command->setAllowRemoteTriggering(this->command.getAllowRemoteTriggering());
     command->setRemoteTriggerId(this->command.getRemoteTriggerId());
+    command->setAllowTimecodeTriggering(this->command.getAllowTimecodeTriggering());
+    command->setTriggerTimecode(this->command.getTriggerTimecode());
     command->setPositionX(this->command.getPositionX());
     command->setPositionY(this->command.getPositionY());
     command->setTransitionDuration(this->command.getTransitionDuration());

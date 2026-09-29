@@ -74,6 +74,7 @@ qt_add_library(widgets
     Library/ToolTreeBaseWidget.cpp Library/ToolTreeBaseWidget.h
     Library/VideoTreeBaseWidget.cpp Library/VideoTreeBaseWidget.h
     LiveDialog.cpp LiveDialog.h LiveDialog.ui
+    LiveTimecodeWidget.cpp LiveTimecodeWidget.h LiveTimecodeWidget.ui
     LiveWidget.cpp LiveWidget.h LiveWidget.ui
     MainWindow.cpp MainWindow.h MainWindow.ui
     OscOutputDialog.cpp OscOutputDialog.h OscOutputDialog.ui
@@ -136,11 +137,14 @@ target_include_directories(widgets PUBLIC
     ../Common
     ../Core
     ../Gpi
+    ../Ltc
     ../Osc
     ../Repository
     ../Web
 )
 add_external_dependencies(widgets)
+
+find_package(Qt6 REQUIRED COMPONENTS Multimedia)
 
 target_compile_definitions(widgets PUBLIC
     WIDGETS_LIBRARY
@@ -155,6 +159,7 @@ target_link_libraries(widgets PUBLIC
     common
     core
     gpi
+    ltc
     osc
     repository
     web
@@ -164,6 +169,7 @@ target_link_libraries(widgets PUBLIC
     Qt::Network
     Qt::Sql
     Qt::Widgets
+    Qt::Multimedia
 )
 
 # Resources:

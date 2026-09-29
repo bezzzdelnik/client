@@ -41,9 +41,19 @@ bool AbstractCommand::getAllowRemoteTriggering() const
     return this->allowRemoteTriggering;
 }
 
+bool AbstractCommand::getAllowTimecodeTriggering() const
+{
+    return this->allowTimecodeTriggering;
+}
+
 QString AbstractCommand::getRemoteTriggerId() const
 {
     return this->remoteTriggerId;
+}
+
+QString AbstractCommand::getTriggerTimecode() const
+{
+    return this->triggerTimecode;
 }
 
 QString AbstractCommand::getStoryId() const
@@ -87,10 +97,22 @@ void AbstractCommand::setAllowRemoteTriggering(bool allowRemoteTriggering)
     emit allowRemoteTriggeringChanged(this->allowRemoteTriggering);
 }
 
+void AbstractCommand::setAllowTimecodeTriggering(bool allowTimecodeTriggering)
+{
+    this->allowTimecodeTriggering = allowTimecodeTriggering;
+    emit allowTimecodeTriggeringChanged(this->allowTimecodeTriggering);
+}
+
 void AbstractCommand::setRemoteTriggerId(const QString& remoteTriggerId)
 {
     this->remoteTriggerId = remoteTriggerId;
     emit remoteTriggerIdChanged(this->remoteTriggerId);
+}
+
+void AbstractCommand::setTriggerTimecode(const QString& triggerTimecode)
+{
+    this->triggerTimecode = triggerTimecode;
+    emit triggerTimecodeChanged(this->triggerTimecode);
 }
 
 void AbstractCommand::setStoryId(const QString& storyId)
@@ -107,7 +129,9 @@ void AbstractCommand::readProperties(boost::property_tree::wptree& pt)
     setDuration(pt.get(L"duration", Output::DEFAULT_DURATION));
     setAllowGpi(pt.get(L"allowgpi", Output::DEFAULT_ALLOW_GPI));
     setAllowRemoteTriggering(pt.get(L"allowremotetriggering", Output::DEFAULT_ALLOW_REMOTE_TRIGGERING));
+    setAllowTimecodeTriggering(pt.get(L"allowtimecodetriggering", Output::DEFAULT_ALLOW_TIMECODE_TRIGGERING));
     setRemoteTriggerId(QString::fromStdWString(pt.get(L"remotetriggerid", Output::DEFAULT_REMOTE_TRIGGER_ID.toStdWString())));
+    setTriggerTimecode(QString::fromStdWString(pt.get(L"triggertimecode", Output::DEFAULT_TRIGGER_TIMECODE.toStdWString())));
     setStoryId(QString::fromStdWString(pt.get(L"storyid", QString("").toStdWString())));
 }
 
@@ -119,6 +143,8 @@ void AbstractCommand::writeProperties(QXmlStreamWriter& writer)
     writer.writeTextElement("duration", QString::number(getDuration()));
     writer.writeTextElement("allowgpi", (getAllowGpi() == true) ? "true" : "false");
     writer.writeTextElement("allowremotetriggering", (getAllowRemoteTriggering() == true) ? "true" : "false");
+    writer.writeTextElement("allowtimecodetriggering", (getAllowTimecodeTriggering() == true) ? "true" : "false");
     writer.writeTextElement("remotetriggerid", getRemoteTriggerId());
+    writer.writeTextElement("triggertimecode", getTriggerTimecode());
     writer.writeTextElement("storyid", getStoryId());
 }

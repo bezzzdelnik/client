@@ -46,11 +46,13 @@ class WIDGETS_EXPORT InspectorOutputWidget : public QWidget, Ui::InspectorOutput
         Q_SLOT void deviceNameChanged(QString);
         Q_SLOT void allowGpiChanged(int);
         Q_SLOT void allowRemoteTriggeringChanged(int);
+        Q_SLOT void allowTimecodeTriggeringChanged(int);
         Q_SLOT void channelChanged(int);
         Q_SLOT void videolayerChanged(int);
         Q_SLOT void delayChanged(int);
         Q_SLOT void durationChanged(int);
         Q_SLOT void remoteTriggerIdChanged(QString);
+        Q_SLOT void triggerTimecodeChanged(QString);
         Q_SLOT void mediaChanged(const MediaChangedEvent&);
         Q_SLOT void templateChanged(const TemplateChangedEvent&);
         Q_SLOT void deviceChanged(const DeviceChangedEvent&);

@@ -6,6 +6,7 @@
 #include "../Core/DatabaseManager.h"
 #include "../Core/EventManager.h"
 #include "../Core/GpiManager.h"
+#include "../Core/LtcManager.h"
 #include "../Core/LibraryManager.h"
 #include "../Core/DeviceManager.h"
 #include "../Core/OscDeviceManager.h"
@@ -295,6 +296,7 @@ int main(int argc, char* argv[])
 
     EventManager::getInstance().initialize();
     GpiManager::getInstance().initialize();
+    LtcManager::getInstance().initialize();
 
     MainWindow window;
     splashScreen.finish(&window);
@@ -313,6 +315,7 @@ int main(int argc, char* argv[])
     EventManager::getInstance().uninitialize();
     DatabaseManager::getInstance().uninitialize();
     GpiManager::getInstance().uninitialize();
+    LtcManager::getInstance().uninitialize();
     OscWebSocketManager::getInstance().uninitialize();
     OscDeviceManager::getInstance().uninitialize();
     DeviceManager::getInstance().uninitialize();

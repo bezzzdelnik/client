@@ -171,6 +171,8 @@ AbstractRundownWidget* RundownTemplateWidget::clone()
     command->setAllowGpi(this->command.getAllowGpi());
     command->setAllowRemoteTriggering(this->command.getAllowRemoteTriggering());
     command->setRemoteTriggerId(this->command.getRemoteTriggerId());
+    command->setAllowTimecodeTriggering(this->command.getAllowTimecodeTriggering());
+    command->setTriggerTimecode(this->command.getTriggerTimecode());
     command->setFlashlayer(this->command.getFlashlayer());
     command->setInvoke(this->command.getInvoke());
     command->setTemplateName(this->command.getTemplateName());

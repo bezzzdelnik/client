@@ -100,6 +100,9 @@ void InspectorOutputWidget::rundownItemSelected(const RundownItemSelectedEvent &
     this->checkBoxAllowRemoteTriggering->setEnabled(true);
     this->labelRemoteTriggerIdField->setEnabled(true);
     this->lineEditRemoteTriggerId->setEnabled(true);
+    this->checkBoxAllowTimecodeTriggering->setEnabled(true);
+    this->labelTriggerTimecodeField->setEnabled(true);
+    this->lineEditTriggerTimecode->setEnabled(true);
 
     this->labelDelayMillisecond->setVisible(true);
     this->labelDurationMillisecond->setVisible(true);
@@ -138,11 +141,19 @@ void InspectorOutputWidget::rundownItemSelected(const RundownItemSelectedEvent &
         this->checkBoxAllowGpi->setChecked(this->command->getAllowGpi());
         this->checkBoxAllowRemoteTriggering->setChecked(this->command->getAllowRemoteTriggering());
         this->lineEditRemoteTriggerId->setText(this->command->getRemoteTriggerId());
+        this->checkBoxAllowTimecodeTriggering->setChecked(this->command->getAllowTimecodeTriggering());
+        this->lineEditTriggerTimecode->setText(this->command->getTriggerTimecode());
 
         if (!this->checkBoxAllowRemoteTriggering->isChecked())
         {
             this->labelRemoteTriggerIdField->setEnabled(false);
             this->lineEditRemoteTriggerId->setEnabled(false);
+        }
+
+        if (!this->checkBoxAllowTimecodeTriggering->isChecked())
+        {
+            this->labelTriggerTimecodeField->setEnabled(false);
+            this->lineEditTriggerTimecode->setEnabled(false);
         }
 
         fillTargetCombo(this->model->getType());
@@ -224,6 +235,9 @@ void InspectorOutputWidget::rundownItemSelected(const RundownItemSelectedEvent &
             this->checkBoxAllowRemoteTriggering->setEnabled(false);
             this->labelRemoteTriggerIdField->setEnabled(false);
             this->lineEditRemoteTriggerId->setEnabled(false);
+            this->checkBoxAllowTimecodeTriggering->setEnabled(false);
+            this->labelTriggerTimecodeField->setEnabled(false);
+            this->lineEditTriggerTimecode->setEnabled(false);
 
             this->comboBoxDevice->setCurrentIndex(-1);
             this->comboBoxTarget->setCurrentIndex(-1);
@@ -234,6 +248,8 @@ void InspectorOutputWidget::rundownItemSelected(const RundownItemSelectedEvent &
             this->checkBoxAllowGpi->setChecked(Output::DEFAULT_ALLOW_GPI);
             this->checkBoxAllowRemoteTriggering->setChecked(Output::DEFAULT_ALLOW_REMOTE_TRIGGERING);
             this->lineEditRemoteTriggerId->setText(Output::DEFAULT_REMOTE_TRIGGER_ID);
+            this->checkBoxAllowTimecodeTriggering->setChecked(Output::DEFAULT_ALLOW_TIMECODE_TRIGGERING);
+            this->lineEditTriggerTimecode->setText(Output::DEFAULT_TRIGGER_TIMECODE);
         }
         else if (dynamic_cast<CustomCommand *>(event.getCommand()))
         {
@@ -317,6 +333,9 @@ void InspectorOutputWidget::libraryItemSelected(const LibraryItemSelectedEvent &
     this->checkBoxAllowRemoteTriggering->setEnabled(false);
     this->labelRemoteTriggerIdField->setEnabled(false);
     this->lineEditRemoteTriggerId->setEnabled(false);
+    this->checkBoxAllowTimecodeTriggering->setEnabled(false);
+    this->labelTriggerTimecodeField->setEnabled(false);
+    this->lineEditTriggerTimecode->setEnabled(false);
 
     this->labelDelayMillisecond->setText("");
     this->labelDelayMillisecond->setVisible(false);
@@ -327,6 +346,8 @@ void InspectorOutputWidget::libraryItemSelected(const LibraryItemSelectedEvent &
     this->checkBoxAllowGpi->setChecked(Output::DEFAULT_ALLOW_GPI);
     this->checkBoxAllowRemoteTriggering->setChecked(Output::DEFAULT_ALLOW_REMOTE_TRIGGERING);
     this->lineEditRemoteTriggerId->setText(Output::DEFAULT_REMOTE_TRIGGER_ID);
+    this->checkBoxAllowTimecodeTriggering->setChecked(Output::DEFAULT_ALLOW_TIMECODE_TRIGGERING);
+    this->lineEditTriggerTimecode->setText(Output::DEFAULT_TRIGGER_TIMECODE);
 
     fillTargetCombo(this->model->getType());
 
@@ -360,6 +381,9 @@ void InspectorOutputWidget::emptyRundown(const EmptyRundownEvent &event)
     this->checkBoxAllowRemoteTriggering->setEnabled(false);
     this->labelRemoteTriggerIdField->setEnabled(false);
     this->lineEditRemoteTriggerId->setEnabled(false);
+    this->checkBoxAllowTimecodeTriggering->setEnabled(false);
+    this->labelTriggerTimecodeField->setEnabled(false);
+    this->lineEditTriggerTimecode->setEnabled(false);
 
     this->labelDelayMillisecond->setText("");
     this->labelDelayMillisecond->setVisible(false);
@@ -374,6 +398,8 @@ void InspectorOutputWidget::emptyRundown(const EmptyRundownEvent &event)
     this->checkBoxAllowGpi->setChecked(Output::DEFAULT_ALLOW_GPI);
     this->checkBoxAllowRemoteTriggering->setChecked(Output::DEFAULT_ALLOW_REMOTE_TRIGGERING);
     this->lineEditRemoteTriggerId->setText(Output::DEFAULT_REMOTE_TRIGGER_ID);
+    this->checkBoxAllowTimecodeTriggering->setChecked(Output::DEFAULT_ALLOW_TIMECODE_TRIGGERING);
+    this->lineEditTriggerTimecode->setText(Output::DEFAULT_TRIGGER_TIMECODE);
 
     checkEmptyDevice();
     checkEmptyTarget();
@@ -438,6 +464,8 @@ void InspectorOutputWidget::blockAllSignals(bool block)
     this->checkBoxAllowGpi->blockSignals(block);
     this->checkBoxAllowRemoteTriggering->blockSignals(block);
     this->lineEditRemoteTriggerId->blockSignals(block);
+    this->checkBoxAllowTimecodeTriggering->blockSignals(block);
+    this->lineEditTriggerTimecode->blockSignals(block);
 }
 
 void InspectorOutputWidget::fillTargetCombo(const QString &type, QString deviceName)
@@ -630,7 +658,20 @@ void InspectorOutputWidget::allowRemoteTriggeringChanged(int state)
     this->lineEditRemoteTriggerId->setEnabled(this->command->getAllowRemoteTriggering());
 }
 
+void InspectorOutputWidget::allowTimecodeTriggeringChanged(int state)
+{
+    this->command->setAllowTimecodeTriggering((state == Qt::Checked) ? true : false);
+
+    this->labelTriggerTimecodeField->setEnabled(this->command->getAllowTimecodeTriggering());
+    this->lineEditTriggerTimecode->setEnabled(this->command->getAllowTimecodeTriggering());
+}
+
 void InspectorOutputWidget::remoteTriggerIdChanged(QString id)
 {
     this->command->setRemoteTriggerId(id);
+}
+
+void InspectorOutputWidget::triggerTimecodeChanged(QString timecode)
+{
+    this->command->setTriggerTimecode(timecode);
 }

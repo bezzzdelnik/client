@@ -1,3 +1,17 @@
+CasparCG Client (bezzzdelnik fork) — LTC Timecode
+=================================================
+- NEW: LTC (Linear Timecode) capture from any system audio input via Qt Multimedia and libltc.
+- NEW: Per-item "Allow Timecode Triggering" with target format HH:MM:SS:FF or HH:MM:SS.
+- NEW: If a specific frame is requested but skipped, trigger on the next nearest frame; if no frame is set, trigger on frame 0 or the next nearest.
+- NEW: Settings → LTC tab: audio device, audio track/channel, and LTC frame rate (25 / 30 / 50 fps).
+- NEW: Live Timecode panel between Audio Levels and Inspector (orange when inactive, green when locked).
+- NEW: Vendored Windows libvlc under lib/libvlc (CMake prefers local binaries over network download).
+- NEW: Vendored libltc sources under lib/libltc.
+- UPDATE: Database schema to version 219 (LtcAudioDevice, LtcAudioChannel, LtcFrameRate).
+- UPDATE: Qt Multimedia is required for Windows builds.
+
+
+
 CasparCG Client 2.3.1
 ==============================
 - Fix crash when using osc on arm64 macos

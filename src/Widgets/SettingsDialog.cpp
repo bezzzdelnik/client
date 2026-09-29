@@ -5,6 +5,7 @@
 
 #include "DatabaseManager.h"
 #include "GpiManager.h"
+#include "LtcManager.h"
 #include "EventManager.h"
 #include "Events/OscOutputChangedEvent.h"
 #include "Events/Library/RefreshLibraryEvent.h"
@@ -15,6 +16,8 @@
 #include "Models/GpiModel.h"
 #include "Models/DeviceModel.h"
 #include "Models/OscOutputModel.h"
+
+#include "LtcDevice.h"
 
 #include <QtCore/QTimer>
 
@@ -136,7 +139,11 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     loadDevice();
     loadGpi();
     loadOscOutput();
+    loadLtc();
 
+    QObject::connect(this->comboBoxLtcAudioDevice, SIGNAL(currentIndexChanged(int)), this, SLOT(ltcAudioDeviceChanged(int)));
+    QObject::connect(this->comboBoxLtcAudioChannel, SIGNAL(currentIndexChanged(int)), this, SLOT(ltcAudioChannelChanged(int)));
+    QObject::connect(this->comboBoxLtcFrameRate, SIGNAL(currentIndexChanged(int)), this, SLOT(ltcFrameRateChanged(int)));
 }
 
 void SettingsDialog::blockAllSignals(bool block)
@@ -613,6 +620,89 @@ void SettingsDialog::updateGpiDevice()
     DatabaseManager::getInstance().updateConfiguration(ConfigurationModel(0, "GpiBaudRate", QString("%1").arg(baudRate)));
 
     GpiManager::getInstance().reinitialize();
+}
+
+void SettingsDialog::loadLtc()
+{
+    this->comboBoxLtcAudioDevice->blockSignals(true);
+    this->comboBoxLtcFrameRate->blockSignals(true);
+
+    this->comboBoxLtcAudioDevice->clear();
+    this->comboBoxLtcAudioDevice->addItem("(Default)", QString());
+
+    const QString selectedId = DatabaseManager::getInstance().getConfigurationByName("LtcAudioDevice").getValue();
+    int selectedIndex = 0;
+
+    const QList<QAudioDevice> inputs = LtcDevice::availableInputs();
+    for (int i = 0; i < inputs.count(); ++i)
+    {
+        const QString id = QString::fromUtf8(inputs.at(i).id());
+        this->comboBoxLtcAudioDevice->addItem(inputs.at(i).description(), id);
+        if (!selectedId.isEmpty() && (id == selectedId || inputs.at(i).description() == selectedId))
+            selectedIndex = i + 1;
+    }
+
+    this->comboBoxLtcAudioDevice->setCurrentIndex(selectedIndex);
+
+    const int frameRate = DatabaseManager::getInstance().getConfigurationByName("LtcFrameRate").getValue().toInt();
+    const int frameRateIndex = this->comboBoxLtcFrameRate->findText(QString::number(frameRate > 0 ? frameRate : 25));
+    this->comboBoxLtcFrameRate->setCurrentIndex(frameRateIndex >= 0 ? frameRateIndex : 0);
+
+    this->comboBoxLtcAudioDevice->blockSignals(false);
+    this->comboBoxLtcFrameRate->blockSignals(false);
+
+    populateLtcChannels(this->comboBoxLtcAudioDevice->currentData().toString());
+}
+
+void SettingsDialog::populateLtcChannels(const QString& deviceId)
+{
+    this->comboBoxLtcAudioChannel->blockSignals(true);
+    this->comboBoxLtcAudioChannel->clear();
+
+    const int channelCount = LtcDevice::channelCountForDevice(deviceId);
+    for (int i = 1; i <= channelCount; ++i)
+        this->comboBoxLtcAudioChannel->addItem(QString::number(i), i);
+
+    int selectedChannel = DatabaseManager::getInstance().getConfigurationByName("LtcAudioChannel").getValue().toInt();
+    if (selectedChannel < 1 || selectedChannel > channelCount)
+        selectedChannel = 1;
+
+    this->comboBoxLtcAudioChannel->setCurrentIndex(selectedChannel - 1);
+    this->comboBoxLtcAudioChannel->blockSignals(false);
+}
+
+void SettingsDialog::updateLtcDevice()
+{
+    if (!isVisible())
+        return;
+
+    const QString deviceId = this->comboBoxLtcAudioDevice->currentData().toString();
+    const int channel = this->comboBoxLtcAudioChannel->currentData().toInt();
+    const int frameRate = this->comboBoxLtcFrameRate->currentText().toInt();
+
+    DatabaseManager::getInstance().updateConfiguration(ConfigurationModel(0, "LtcAudioDevice", deviceId));
+    DatabaseManager::getInstance().updateConfiguration(ConfigurationModel(0, "LtcAudioChannel", QString::number(channel > 0 ? channel : 1)));
+    DatabaseManager::getInstance().updateConfiguration(ConfigurationModel(0, "LtcFrameRate", QString::number(frameRate > 0 ? frameRate : 25)));
+    LtcManager::getInstance().reinitialize();
+}
+
+void SettingsDialog::ltcAudioDeviceChanged(int index)
+{
+    Q_UNUSED(index);
+    populateLtcChannels(this->comboBoxLtcAudioDevice->currentData().toString());
+    updateLtcDevice();
+}
+
+void SettingsDialog::ltcAudioChannelChanged(int index)
+{
+    Q_UNUSED(index);
+    updateLtcDevice();
+}
+
+void SettingsDialog::ltcFrameRateChanged(int index)
+{
+    Q_UNUSED(index);
+    updateLtcDevice();
 }
 
 void SettingsDialog::serialPortChanged()

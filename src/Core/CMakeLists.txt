@@ -126,6 +126,7 @@ qt_add_library(core
     Events/StatusbarEvent.cpp Events/StatusbarEvent.h
     Events/ToggleFullscreenEvent.cpp Events/ToggleFullscreenEvent.h
     GpiManager.cpp GpiManager.h
+    LtcManager.cpp LtcManager.h
     LibraryManager.cpp LibraryManager.h
     Models/BlendModeModel.cpp Models/BlendModeModel.h
     Models/ChromaModel.cpp Models/ChromaModel.h
@@ -158,6 +159,7 @@ target_include_directories(core PUBLIC
     ../Caspar
     ../Common
     ../Gpi
+    ../Ltc
     ../Osc
 )
 
@@ -169,6 +171,7 @@ target_link_libraries(core PUBLIC
     caspar
     common
     gpi
+    ltc
     osc
     
     Qt::Core
@@ -190,6 +193,8 @@ set(Core_resource_files
     "Sql/ChangeScript-215.sql"
     "Sql/ChangeScript-216.sql"
     "Sql/ChangeScript-217.sql"
+    "Sql/ChangeScript-218.sql"
+    "Sql/ChangeScript-219.sql"
     "Sql/Schema.sql"
 )
 

@@ -24,11 +24,13 @@ class WIDGETS_EXPORT SettingsDialog : public QDialog, Ui::SettingsDialog
         void loadGpi();
         void loadDevice();
         void loadOscOutput();
+        void loadLtc();
         void checkEmptyDeviceList();
         void checkEmptyOscOutputList();
         void updateGpi(int gpi, const QComboBox* voltage, const QComboBox* action);
         void updateGpo(int gpo, const QComboBox* voltage, const QSpinBox* pulseLength);
         void updateGpiDevice();
+        void updateLtcDevice();
         void blockAllSignals(bool block);
 
         Q_SLOT void removeDevice();
@@ -89,4 +91,8 @@ class WIDGETS_EXPORT SettingsDialog : public QDialog, Ui::SettingsDialog
         Q_SLOT void showDurationChanged(int);
         Q_SLOT void useFreezeOnLoadChanged(int);
         Q_SLOT void useDropFrameNotationChanged(int);
+        Q_SLOT void ltcAudioDeviceChanged(int);
+        Q_SLOT void ltcAudioChannelChanged(int);
+        Q_SLOT void ltcFrameRateChanged(int);
+        void populateLtcChannels(const QString& deviceId);
 };

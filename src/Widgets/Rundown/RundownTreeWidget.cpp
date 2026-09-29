@@ -28,6 +28,7 @@
 #include "PresetDialog.h"
 
 #include "GpiManager.h"
+#include "LtcManager.h"
 #include "DatabaseManager.h"
 #include "EventManager.h"
 #include "DeviceManager.h"
@@ -78,6 +79,9 @@ RundownTreeWidget::RundownTreeWidget(QWidget* parent)
 
     // TODO: Specific Gpi device.
     QObject::connect(GpiManager::getInstance().getGpiDevice().data(), SIGNAL(gpiTriggered(int, GpiDevice*)), this, SLOT(gpiPortTriggered(int, GpiDevice*)));
+
+    if (LtcManager::getInstance().getLtcDevice())
+        QObject::connect(LtcManager::getInstance().getLtcDevice().data(), SIGNAL(timecodeChanged(QString,bool)), this, SLOT(timecodeChanged(QString,bool)));
 
     QObject::connect(&EventManager::getInstance(), SIGNAL(clearDelayedCommands()), this, SLOT(clearDelayedCommands()));
     QObject::connect(&EventManager::getInstance(), SIGNAL(saveAsPreset(const SaveAsPresetEvent&)), this, SLOT(saveAsPreset(const SaveAsPresetEvent&)));
@@ -817,6 +821,62 @@ void RundownTreeWidget::gpiPortTriggered(int gpiPort, GpiDevice* device)
     executeCommand(gpiBindings[gpiPort], Action::ActionType::GpiPulse);
 }
 
+void RundownTreeWidget::timecodeChanged(const QString& timecode, bool active)
+{
+    if (!this->active || !active)
+    {
+        this->previousLiveTimecode = TimecodeValue();
+        this->timecodeTriggeredCommands.clear();
+        return;
+    }
+
+    const TimecodeValue current = parseLiveTimecode(timecode);
+    if (!current.valid)
+        return;
+
+    if (this->previousLiveTimecode.valid && current.toComparable() < this->previousLiveTimecode.toComparable())
+        this->timecodeTriggeredCommands.clear();
+
+    QList<QTreeWidgetItem*> items;
+    for (int i = 0; i < this->treeWidgetRundown->invisibleRootItem()->childCount(); ++i)
+    {
+        QTreeWidgetItem* top = this->treeWidgetRundown->invisibleRootItem()->child(i);
+        items.append(top);
+        for (int c = 0; c < top->childCount(); ++c)
+            items.append(top->child(c));
+    }
+
+    foreach (QTreeWidgetItem* item, items)
+    {
+        AbstractRundownWidget* widget = dynamic_cast<AbstractRundownWidget*>(this->treeWidgetRundown->itemWidget(item, 0));
+        if (!widget)
+            continue;
+
+        AbstractCommand* command = widget->getCommand();
+        if (!command || !command->getAllowTimecodeTriggering())
+            continue;
+
+        const TimecodeValue target = parseTriggerTimecode(command->getTriggerTimecode());
+        if (!target.valid)
+            continue;
+
+        if (this->timecodeTriggeredCommands.contains(command))
+        {
+            if (current.toComparable() < target.toComparable())
+                this->timecodeTriggeredCommands.remove(command);
+            continue;
+        }
+
+        if (shouldTriggerOnTimecode(this->previousLiveTimecode, current, target))
+        {
+            this->timecodeTriggeredCommands.insert(command);
+            executeCommand(Playout::PlayoutType::Play, Action::ActionType::TimecodeMatch, item);
+        }
+    }
+
+    this->previousLiveTimecode = current;
+}
+
 void RundownTreeWidget::gpiBindingChanged(int gpiPort, Playout::PlayoutType binding)
 {
     gpiBindings[gpiPort] = binding;
@@ -1166,6 +1226,9 @@ bool RundownTreeWidget::executeCommand(Playout::PlayoutType type, Action::Action
 
     if (source == Action::ActionType::GpiPulse && !rundownWidget->getCommand()->getAllowGpi())
         return true; // Gpi pulses cannot trigger this item.
+
+    if (source == Action::ActionType::TimecodeMatch && !rundownWidget->getCommand()->getAllowTimecodeTriggering())
+        return true; // Timecode cannot trigger this item.
 
     if (type == Playout::PlayoutType::Next && rundownWidgetParent != nullptr && rundownWidgetParent->isGroup() && dynamic_cast<GroupCommand*>(rundownWidgetParent->getCommand())->getAutoPlay())
     {

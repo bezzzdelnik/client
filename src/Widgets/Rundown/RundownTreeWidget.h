@@ -8,6 +8,7 @@
 #include "Global.h"
 
 #include "GpiDevice.h"
+#include "LtcDevice.h"
 #include "RepositoryDevice.h"
 #include "Models/RepositoryChangeModel.h"
 
@@ -32,9 +33,12 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
+#include "TimecodeTrigger.h"
+
 #include <QtCore/QEvent>
 #include <QtCore/QMap>
 #include <QtCore/QObject>
+#include <QtCore/QSet>
 #include <QtCore/QString>
 #include <QtCore/QXmlStreamWriter>
 #include <QtCore/QSharedPointer>
@@ -89,6 +93,8 @@ class WIDGETS_EXPORT RundownTreeWidget : public QWidget, Ui::RundownTreeWidget
         QMenu* contextMenuRundown;
 
         QMap<int, Playout::PlayoutType> gpiBindings;
+        QSet<AbstractCommand*> timecodeTriggeredCommands;
+        TimecodeValue previousLiveTimecode;
 
         AbstractRundownWidget* currentAutoPlayWidget;
         QList<QList<AbstractRundownWidget*>* > autoPlayQueues;
@@ -170,6 +176,7 @@ class WIDGETS_EXPORT RundownTreeWidget : public QWidget, Ui::RundownTreeWidget
         Q_SLOT void contextMenuRundownTriggered(QAction*);
         Q_SLOT void customContextMenuRequested(const QPoint&);
         Q_SLOT void gpiPortTriggered(int, GpiDevice*);
+        Q_SLOT void timecodeChanged(const QString& timecode, bool active);
         Q_SLOT void currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*);
         Q_SLOT void itemDoubleClicked(QTreeWidgetItem*, int);
         Q_SLOT void itemClicked(QTreeWidgetItem*, int);

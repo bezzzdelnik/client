@@ -144,6 +144,8 @@ AbstractRundownWidget* RundownFileRecorderWidget::clone()
     command->setAllowGpi(this->command.getAllowGpi());
     command->setAllowRemoteTriggering(this->command.getAllowRemoteTriggering());
     command->setRemoteTriggerId(this->command.getRemoteTriggerId());
+    command->setAllowTimecodeTriggering(this->command.getAllowTimecodeTriggering());
+    command->setTriggerTimecode(this->command.getTriggerTimecode());
     command->setOutput(this->command.getOutput());
     command->setCodec(this->command.getCodec());
     command->setPreset(this->command.getPreset());

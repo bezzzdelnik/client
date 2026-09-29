@@ -12,7 +12,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # qt_standard_project_setup()
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Network Sql Widgets Core5Compat)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Network Sql Widgets Core5Compat Multimedia)
 
 if (UNIX AND APPLE)
     set(myApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/Images/CasparCG.icns)
@@ -57,6 +57,7 @@ target_include_directories(shell PRIVATE
     ../Common
     ../Core
     ../Gpi
+    ../Ltc
     ../Osc
     ../Repository
     ../Web
@@ -68,6 +69,7 @@ target_link_libraries(shell PRIVATE
     common
     core
     gpi
+    ltc
     osc
     repository
     web
@@ -79,6 +81,7 @@ target_link_libraries(shell PRIVATE
     Qt::Sql
     Qt::Widgets
     Qt::Core5Compat
+    Qt::Multimedia
 
     ${Boost_LIBRARIES}
     

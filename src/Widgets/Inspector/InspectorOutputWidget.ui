@@ -180,6 +180,36 @@
      </property>
     </widget>
    </item>
+   <item row="9" column="1">
+    <widget class="QCheckBox" name="checkBoxAllowTimecodeTriggering">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Allow Timecode Triggering</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="labelTriggerTimecodeField">
+     <property name="text">
+      <string>TC</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <widget class="QLineEdit" name="lineEditTriggerTimecode">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="placeholderText">
+      <string>HH:MM:SS:FF or HH:MM:SS</string>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="labelTarget">
      <property name="text">
@@ -261,6 +291,8 @@
   <tabstop>checkBoxAllowGpi</tabstop>
   <tabstop>checkBoxAllowRemoteTriggering</tabstop>
   <tabstop>lineEditRemoteTriggerId</tabstop>
+  <tabstop>checkBoxAllowTimecodeTriggering</tabstop>
+  <tabstop>lineEditTriggerTimecode</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -393,6 +425,38 @@
    </hints>
   </connection>
   <connection>
+   <sender>checkBoxAllowTimecodeTriggering</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>InspectorOutputWidget</receiver>
+   <slot>allowTimecodeTriggeringChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>213</x>
+     <y>280</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>0</x>
+     <y>250</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lineEditTriggerTimecode</sender>
+   <signal>textEdited(QString)</signal>
+   <receiver>InspectorOutputWidget</receiver>
+   <slot>triggerTimecodeChanged(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>295</x>
+     <y>310</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>249</x>
+     <y>280</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
    <sender>spinBoxDuration</sender>
    <signal>valueChanged(int)</signal>
    <receiver>InspectorOutputWidget</receiver>
@@ -418,6 +482,8 @@
   <slot>targetChanged(QString)</slot>
   <slot>allowRemoteTriggeringChanged(int)</slot>
   <slot>remoteTriggerIdChanged(QString)</slot>
+  <slot>allowTimecodeTriggeringChanged(int)</slot>
+  <slot>triggerTimecodeChanged(QString)</slot>
   <slot>durationChanged(int)</slot>
  </slots>
 </ui>

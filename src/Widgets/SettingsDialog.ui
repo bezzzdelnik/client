@@ -1152,6 +1152,146 @@
      </property>
     </widget>
    </widget>
+   <widget class="QWidget" name="tabLtc">
+    <attribute name="title">
+     <string>LTC</string>
+    </attribute>
+    <widget class="QLabel" name="labelLtcSection">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>LTC Input</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="Line" name="lineLtcSection">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>28</y>
+       <width>555</width>
+       <height>1</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelLtcAudioDevice">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>50</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Audio device:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxLtcAudioDevice">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>48</y>
+       <width>420</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelLtcAudioChannel">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>86</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Audio track:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxLtcAudioChannel">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>84</y>
+       <width>120</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelLtcFrameRate">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>122</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Frame rate:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBoxLtcFrameRate">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>120</y>
+       <width>120</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>25</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>30</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>50</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="labelLtcFrameRateUnit">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>122</y>
+       <width>80</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>fps</string>
+     </property>
+    </widget>
+   </widget>
    <widget class="QWidget" name="tabGpi">
     <attribute name="title">
      <string>GPI</string>

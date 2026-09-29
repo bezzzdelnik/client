@@ -120,6 +120,8 @@ AbstractRundownWidget* RundownFadeToBlackWidget::clone()
     command->setAllowGpi(this->command.getAllowGpi());
     command->setAllowRemoteTriggering(this->command.getAllowRemoteTriggering());
     command->setRemoteTriggerId(this->command.getRemoteTriggerId());
+    command->setAllowTimecodeTriggering(this->command.getAllowTimecodeTriggering());
+    command->setTriggerTimecode(this->command.getTriggerTimecode());
     command->setTransition(this->command.getTransition());
     command->setTransitionDuration(this->command.getTransitionDuration());
     command->setTween(this->command.getTween());
